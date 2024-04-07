@@ -1,7 +1,5 @@
 package softwood.pm.myapplication;
 
-import android.icu.text.RelativeDateTimeFormatter;
-
 public class Data {
     private double Latitude, Longitude;
     private String Type;
