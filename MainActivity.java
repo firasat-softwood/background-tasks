@@ -1,4 +1,4 @@
-package softwood.pm.myapplication;
+package softwood.pm.async;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -6,17 +6,17 @@ import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.EditText;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.w3c.dom.Text;
 
 public class MainActivity extends AppCompatActivity {
-
-    //Create variables for the two buttons on screen.
-    Button btn_InTime, btn_OutTime;
-    TextView tv_Result;
-    private static final String API_URL = "http://206.42.124.10:8000/api";
+    private Button button;
+    private EditText time;
+    private TextView finalResult;
     private Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
@@ -25,53 +25,42 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        btn_InTime = (Button) findViewById(R.id.btn_InTime);
-        btn_OutTime = (Button) findViewById(R.id.btn_OutTime);
-        tv_Result = (TextView) findViewById(R.id.tv_Result);
+        time = (EditText) findViewById(R.id.in_time);
+        button = (Button) findViewById(R.id.btn_run);
+        finalResult = (TextView) findViewById(R.id.tv_result);
 
-
-        //Run this functions upon clicking the In Time Button.
-        btn_InTime.setOnClickListener(new View.OnClickListener() {
+        button.setOnClickListener(new View.OnClickListener(){
             @Override
-            public void onClick(View view) {
-                runBackgroundTask("InTime");
-            }
-        });
-
-        //Run this functions upon clicking the Out Time Button.
-        btn_OutTime.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                runBackgroundTask("OutTime");
+            public void onClick(View view){
+                runBackgroundTask();
             }
         });
     }
-    public void runBackgroundTask(String type){
-        BackgroundTask task = new BackgroundTask(type);
+    public void runBackgroundTask(){
+        String sleep = time.getText().toString();
+        BackgroundTask task = new BackgroundTask(Integer.parseInt(sleep));
         Thread thread = new Thread (task);
         thread.start();
     }
     private class BackgroundTask implements Runnable {
-        private String type, error;
-        Data data;
-        public BackgroundTask ( String type){
-            this.type = type;
+        private int time;
+        private String result;
+
+        public BackgroundTask (int time){
+            this.time = time;
         }
         @Override
         public void run(){
             try {
-                data = getData(type);
-                handler.post (() -> tv_Result.setText (data.getType().toString())); // Update UI from handler
-            }catch (Exception e){
+                Thread.sleep(time * 1000);
+                result = "Slept for " + time + " seconds";
+                handler.post (() -> finalResult.setText (result)); // Update UI from handler
+            }catch (InterruptedException e){
                 e.printStackTrace();
-                error = e.getMessage();
-                handler.post(() -> tv_Result.setText(error)); // Update UI from handler
+                result = e.getMessage();
+                handler.post(() -> finalResult.setText(result)); // Update UI from handler
             }
-        }
-    }
-    public Data getData(String type){
-        double Latitude=0.0, Longitude=0.0;
 
-        return new Data(Latitude, Longitude, type);
+        }
     }
 }
